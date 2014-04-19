@@ -12,8 +12,14 @@
                        storage medium. Returns a function that reverses these
                        side effects and closes the storage medium."))
 
+(defprotocol IPhoneNumberStore
+  (add-number! [this number] "Adds a phone number to the store")
+  (del-number! [this number] "Removes a phone number from the store")
+  (active-numbers [this] "Every active number in the store"))
+
 (defn memory-blank-db []
-  {:sessions {}})
+  {:sessions {}
+   :numbers {}})
 
 (defrecord MemoryStorage [db]
   Storage
@@ -42,6 +48,21 @@
         #(do (.shutdown thread-pool)
              (.. Runtime getRuntime (removeShutdownHook shutdown-thread))
              (persist-db)))))
+
+  IPhoneNumberStore
+  (add-number! [_ number]
+    (let [num-obj {:active true
+                   :number number}]
+      (swap! db assoc-in [:numbers number] num-obj)))
+
+  (del-number! [_ number]
+    (swap! db assoc-in [:numbers number :active] false))
+
+  (active-numbers [_]
+    (->> (:numbers @db)
+      (map val)
+      (filter :active)
+      (map :number)))
 
   SessionStore
   (read-session [_ key]

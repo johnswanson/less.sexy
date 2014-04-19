@@ -13,6 +13,9 @@
   (routes
     (resources "/public")
     (GET "/" [] index/get-page)
+    (POST "/" [number] (storage/add-number! store number))
+    (POST "/delete" [number] (storage/del-number! store number))
+    (DELETE "/" [number] (storage/del-number! store number))
     (not-found "404")))
 
 (defn create-handler [store]
