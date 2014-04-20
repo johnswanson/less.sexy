@@ -5,7 +5,9 @@
             [lein-cljsbuild "1.0.3"]]
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[org.clojure/tools.namespace "0.2.4"]
-                                  [ring-mock "0.1.5"]]}
+                                  [ring-mock "0.1.5"]
+                                  [spyscope "0.1.4"]]
+                   :injections  [(require 'spyscope.core)]}
              :production {:main less.sexy.system}}
   :source-paths ["src/clj"]
   :cljsbuild {:builds [{:source-paths ["src/cljs"]
