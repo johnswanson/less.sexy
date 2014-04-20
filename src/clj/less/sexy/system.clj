@@ -1,11 +1,14 @@
 (ns less.sexy.system
   (:gen-class)
-  (:require [less.sexy.storage :as storage]
+  (:require [clojure.core.async :as async]
+            [less.sexy.storage :as storage]
             [less.sexy.twilio :as twilio]
             [less.sexy.routing]
+            [less.sexy.numbers]
             [ring.adapter.jetty :refer [run-jetty]])
   (:import [less.sexy.storage MemoryStorage]
-           [less.sexy.twilio Twilio]))
+           [less.sexy.twilio Twilio]
+           [less.sexy.numbers PhoneNumbers]))
 
 (defn config [& args]
   (let [data (read-string (slurp "config.clj"))]
@@ -14,7 +17,9 @@
 (defn system []
   {:storage nil
    :twilio nil
-   :server nil})
+   :server nil
+   :session nil
+   :q nil})
 
 (defn start!
   "Performs side effects to initialize the system, aquire resources, and start
@@ -28,13 +33,18 @@
                     (config :twilio :sid)
                     (config :twilio :token)
                     (config :twilio :number))
+        q (async/chan (async/sliding-buffer 256))
+        session {:store store}
+        numbers (new PhoneNumbers store twilio q)
         server (run-jetty
-                 (less.sexy.routing/create-handler store twilio)
+                 (less.sexy.routing/create-handler session numbers q)
                  (config :server))]
     (-> system
       (assoc :storage {:storage store :shutdown shutdown-store})
       (assoc :twilio twilio)
-      (assoc :server server))))
+      (assoc :server server)
+      (assoc :session session)
+      (assoc :q q))))
 
 (defn stop!
   "Performs side effects to shut down the system and release its resources.
@@ -45,7 +55,9 @@
   (-> system
     (assoc :server nil)
     (assoc :storage nil)
-    (assoc :twilio nil)))
+    (assoc :twilio nil)
+    (assoc :session nil)
+    (assoc :q nil)))
 
 (defn -main [] (start! (system)))
 

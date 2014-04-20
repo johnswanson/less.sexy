@@ -11,8 +11,10 @@
 
 (defprotocol IPhoneNumberStore
   (add-number! [this number] "Adds a phone number to the store")
+  (number-exists? [this number] "Checks to see if a number exists")
   (del-number! [this number] "Removes a phone number from the store")
-  (active-numbers [this] "Every active number in the store"))
+  (active-numbers [this] "Every active number in the store")
+  (authorize! [this number] "Authorizes the number"))
 
 (defn memory-blank-db []
   {:sessions {}
@@ -48,9 +50,15 @@
 
   IPhoneNumberStore
   (add-number! [_ number]
-    (let [num-obj {:active true
+    (let [num-obj {:active false
                    :number number}]
       (swap! db assoc-in [:numbers number] num-obj)))
+
+  (authorize! [_ number]
+    (swap! db assoc-in [:numbers number :active] true))
+
+  (number-exists? [_ number]
+    (get-in @db [:numbers number]))
 
   (del-number! [_ number]
     (swap! db assoc-in [:numbers number :active] false))
