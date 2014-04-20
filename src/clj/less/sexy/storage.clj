@@ -10,15 +10,16 @@
                        side effects and closes the storage medium."))
 
 (defprotocol IPhoneNumberStore
-  (add-number! [this number] "Adds a phone number to the store")
-  (number-exists? [this number] "Checks to see if a number exists")
-  (del-number! [this number] "Removes a phone number from the store")
-  (active-numbers [this] "Every active number in the store")
-  (authorize! [this number] "Authorizes the number"))
+  (add! [this phone] "Adds a phone number to the store")
+  (inc-auth! [this phone] "Increments the auth counter for a phone")
+  (getphone [this number] "Gets the number record if it exists")
+  (del! [this phone] "Removes a phone number from the store")
+  (authorized-numbers [this] "Every active number in the store")
+  (authorize! [this phone] "Authorizes the number"))
 
 (defn memory-blank-db []
   {:sessions {}
-   :numbers {}})
+   :phones {}})
 
 (defrecord MemoryStorage [db]
   Storage
@@ -49,24 +50,30 @@
              (persist-db)))))
 
   IPhoneNumberStore
-  (add-number! [_ number]
-    (let [num-obj {:active false
-                   :number number}]
-      (swap! db assoc-in [:numbers number] num-obj)))
+  (add! [this phone]
+    (swap! db assoc-in [:phones (:number phone)] phone)
+    (getphone this (:number phone)))
 
-  (authorize! [_ number]
-    (swap! db assoc-in [:numbers number :active] true))
+  (inc-auth! [this phone]
+    (swap! db update-in [:phones (:number phone) :auth-attempts] inc)
+    (getphone this (:number phone)))
 
-  (number-exists? [_ number]
-    (get-in @db [:numbers number]))
+  (authorize! [this phone]
+    (swap! db assoc-in [:phones (:number phone) :authorized] true)
+    (getphone this (:number phone)))
 
-  (del-number! [_ number]
-    (swap! db assoc-in [:numbers number :active] false))
+  (getphone [_ n]
+    (get-in @db [:phones n]))
 
-  (active-numbers [_]
-    (->> (:numbers @db)
+  (del! [_ phone]
+    (assert (map? phone))
+    (swap! db assoc-in [:phone (:number phone) :authorized] false)
+    nil)
+
+  (authorized-numbers [_]
+    (->> (:phones @db)
       (map val)
-      (filter :active)
+      (filter :authorized)
       (map :number)))
 
   SessionStore

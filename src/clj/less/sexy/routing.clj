@@ -14,8 +14,8 @@
   (routes
     (resources "/public")
     (GET "/" [] index/get-page)
-    (POST "/" [number] (numbers/add-number nums number))
-    (POST "/delete" [number] (numbers/del-number nums number))
+    (POST "/" [number] (numbers/add nums number))
+    (POST "/delete" [number] (numbers/del nums number))
     (POST "/sms" [From To Body]
       (go (>! q [:authorize From Body])))
     (not-found "404")))
