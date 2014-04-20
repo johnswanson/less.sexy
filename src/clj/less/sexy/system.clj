@@ -12,12 +12,9 @@
     (get-in data args)))
 
 (defn system []
-  (let [storage (atom nil)
-        handler nil]
-    {:storage {:store storage}
-     :twilio nil
-     :server {:handler handler
-              :server nil}}))
+  {:storage nil
+   :twilio nil
+   :server nil})
 
 (defn start!
   "Performs side effects to initialize the system, aquire resources, and start
@@ -26,6 +23,7 @@
   (let [store (case (config :storage :type)
                 :memory (new MemoryStorage (atom nil))
                 nil)
+        shutdown-store (storage/init! store (config :storage))
         twilio (new Twilio
                     (config :twilio :sid)
                     (config :twilio :token)
@@ -33,24 +31,21 @@
         server (run-jetty
                  (less.sexy.routing/create-handler store twilio)
                  (config :server))]
-    (reset! (get-in system [:storage :store]) store)
     (-> system
-      (assoc-in [:storage :shutdown]
-                (storage/init! store (config :storage)))
-      (assoc-in [:server :server] server))))
+      (assoc :storage {:storage store :shutdown shutdown-store})
+      (assoc :twilio twilio)
+      (assoc :server server))))
 
 (defn stop!
   "Performs side effects to shut down the system and release its resources.
   Returns an updated instance of the system."
   [system]
-
-  (.stop (get-in system [:server :server]))
+  (.stop (:server system))
   ((get-in system [:storage :shutdown]))
-  (reset! (get-in system [:storage :store]) nil)
   (-> system
-    (assoc-in [:server :server] nil)
-    (assoc-in [:server :twilio] nil)
-    (assoc-in [:storage :shutdown] nil)))
+    (assoc :server nil)
+    (assoc :storage nil)
+    (assoc :twilio nil)))
 
 (defn -main [] (start! (system)))
 
