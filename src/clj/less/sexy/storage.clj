@@ -1,11 +1,8 @@
 (ns less.sexy.storage
   (:import java.util.concurrent.TimeUnit
            java.util.concurrent.Executors)
-  (:require [ring.middleware.session.store :refer [SessionStore]]))
-
-(def cs (map char (concat (range 48 58) (range 66 92) (range 97 123))))
-(defn rand-char [] (nth cs (.nextInt (java.util.Random.) (count cs))))
-(defn rand-str [n] (apply str (take n (repeatedly rand-char))))
+  (:require [ring.middleware.session.store :refer [SessionStore]]
+            [less.sexy.utils :refer [rand-str]]))
 
 (defprotocol Storage
   (init! [this config] "Performs any side effects necessary to initialize the
