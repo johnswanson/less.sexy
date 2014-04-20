@@ -1,9 +1,11 @@
 (ns less.sexy.system
   (:gen-class)
   (:require [less.sexy.storage :as storage]
+            [less.sexy.twilio :as twilio]
             [less.sexy.routing]
             [ring.adapter.jetty :refer [run-jetty]])
-  (:import [less.sexy.storage MemoryStorage]))
+  (:import [less.sexy.storage MemoryStorage]
+           [less.sexy.twilio Twilio]))
 
 (defn config [& args]
   (let [data (read-string (slurp "config.clj"))]
@@ -11,8 +13,9 @@
 
 (defn system []
   (let [storage (atom nil)
-        handler (less.sexy.routing/create-handler storage)]
+        handler nil]
     {:storage {:store storage}
+     :twilio nil
      :server {:handler handler
               :server nil}}))
 
@@ -23,8 +26,12 @@
   (let [store (case (config :storage :type)
                 :memory (new MemoryStorage (atom nil))
                 nil)
+        twilio (new Twilio
+                    (config :twilio :sid)
+                    (config :twilio :token)
+                    (config :twilio :number))
         server (run-jetty
-                 (less.sexy.routing/create-handler store)
+                 (less.sexy.routing/create-handler store twilio)
                  (config :server))]
     (reset! (get-in system [:storage :store]) store)
     (-> system
@@ -42,6 +49,7 @@
   (reset! (get-in system [:storage :store]) nil)
   (-> system
     (assoc-in [:server :server] nil)
+    (assoc-in [:server :twilio] nil)
     (assoc-in [:storage :shutdown] nil)))
 
 (defn -main [] (start! (system)))
