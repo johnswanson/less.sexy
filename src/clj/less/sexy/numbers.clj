@@ -39,7 +39,6 @@
   (authorize [this number]
     (if (can-authorize (getp this number))
       (let [phone (storage/inc-auth! store (get-or-create this number))
-            _ (printf "Phone: %s" phone)
             code (new-auth-code)
             pred (is-auth-fn number code)
             auth-msg (format "Welcome! Text back %s to authorize." code)
