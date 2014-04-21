@@ -2,7 +2,7 @@
   (:import java.util.concurrent.TimeUnit
            java.util.concurrent.Executors)
   (:require [ring.middleware.session.store :refer [SessionStore]]
-            [less.sexy.utils :refer [rand-str]]))
+            [less.sexy.utils :refer [rand-str log]]))
 
 (defprotocol Storage
   (init! [this config] "Performs any side effects necessary to initialize the
@@ -14,6 +14,7 @@
   (inc-auth! [this phone] "Increments the auth counter for a phone")
   (getphone [this number] "Gets the number record if it exists")
   (del! [this phone] "Removes a phone number from the store")
+  (invalid! [this phone] "Completely deletes the phone record")
   (authorized-numbers [this] "Every active number in the store")
   (authorize! [this phone] "Authorizes the number"))
 
@@ -29,8 +30,8 @@
       (if to-disk?
         (try
           (reset! db (read-db))
-          (catch java.io.IOException ioe
-            (println "Database" path "not found, using test data")
+          (catch java.io.IOException _
+            (log "Database %s not found, using test data\n" path)
             (reset! db (memory-blank-db))))
         (reset! db (memory-blank-db)))
       (let [shutdown-thread (Thread. persist-db)
@@ -51,24 +52,31 @@
 
   IPhoneNumberStore
   (add! [this phone]
+    {:pre [(map? phone)]}
     (swap! db assoc-in [:phones (:number phone)] phone)
     (getphone this (:number phone)))
 
   (inc-auth! [this phone]
+    {:pre [(map? phone)]}
     (swap! db update-in [:phones (:number phone) :auth-attempts] inc)
     (getphone this (:number phone)))
 
   (authorize! [this phone]
-    (swap! db assoc-in [:phones (:number phone) :authorized] true)
+    {:pre [(map? phone)]}
+    (swap! db update-in [:phones (:number phone)] assoc :authorized true :valid true)
     (getphone this (:number phone)))
 
   (getphone [_ n]
     (get-in @db [:phones n]))
 
   (del! [_ phone]
-    (assert (map? phone))
+    {:pre [(map? phone)]}
     (swap! db assoc-in [:phone (:number phone) :authorized] false)
     nil)
+
+  (invalid! [_ phone]
+    {:pre [(map? phone)]}
+    (swap! db update-in [:phones (:number phone)] assoc :valid false :authorized false))
 
   (authorized-numbers [_]
     (->> (:phones @db)

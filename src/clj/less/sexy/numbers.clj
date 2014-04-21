@@ -8,10 +8,16 @@
   (getp [this number] "Gets the phone object for the number")
   (get-or-create [this number] "Gets or creates a phone object for the number"))
 
-(defn standardize [number] number)
+(defn standardize
+  "Tries to turn a phone number into E.164 format"
+  [number]
+  (format "+%s" (clojure.string/replace number #"[^\d]" "")))
+
 (defn phone [number] {:number (standardize number)
                       :authorized false
-                      :auth-attempts 0})
+                      :auth-attempts 0
+                      :valid :maybe
+                      :orig-number number})
 
 (defprotocol IPhoneNumbers
   (authorize [this number] "Authorize a particular number, e.g.
@@ -28,6 +34,7 @@
 (defn can-authorize [phone]
   (or (nil? phone)
       (not (:authorized phone))
+      (:valid phone)
       (>= 5 (:auth-attempts phone))))
 
 (def new-auth-code
@@ -41,15 +48,16 @@
       (let [phone (storage/inc-auth! store (get-or-create this number))
             code (new-auth-code)
             pred (is-auth-fn number code)
-            auth-msg (format "Welcome! Text back %s to authorize." code)
+            auth-msg (format "Text back %s to authorize." code)
             auth-chan (filter< pred q)
             timeout-chan (timeout authorization-time-limit)]
-        (send-sms twilio number auth-msg)
-        (go
-          (let [[_ ch] (alts! [auth-chan timeout-chan])]
-            (when (= ch auth-chan)
-              (send-sms twilio number "Yay, you're authorized!!")
-              (storage/authorize! store phone)))))))
+        (if (send-sms twilio number auth-msg)
+          (go
+            (let [[_ ch] (alts! [auth-chan timeout-chan])]
+              (when (= ch auth-chan)
+                (send-sms twilio number "Yay, you're authorized!!")
+                (storage/authorize! store phone))))
+          (storage/invalid! store phone)))))
 
   (del [_ number]
     (storage/del! store number))

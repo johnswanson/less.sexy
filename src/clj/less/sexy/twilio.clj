@@ -13,5 +13,7 @@
   (send-sms [this to body]
     (let [client (TwilioRestClient. sid token)
           sms-factory (.. client getAccount getSmsFactory)]
-      (.create sms-factory (hash-map "From" number "To" to "Body" body)))))
+      (try
+        (.create sms-factory (hash-map "From" number "To" to "Body" body))
+        (catch TwilioRestException e nil)))))
 
