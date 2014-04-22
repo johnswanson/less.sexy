@@ -17,6 +17,8 @@
                       :orig-number number})
 
 (defprotocol IPhoneNumbers
+  (auth-chan [this number code] "A channel containing only valid authorization
+                                attempts for the given number")
   (authorize [this number] "Authorize a particular number, e.g.
                             (authorize numbers \"+19073511000\")")
   (del [this number] "Marks a number as no longer active")
@@ -27,28 +29,26 @@
 
 (def authorization-time-limit (* 1000 60))
 
-(defn- is-auth-fn [number code]
-  (partial = [:authorize number code]))
-
 (defn- can-authorize [phone]
   (or (nil? phone)
       (not (:authorized phone))
       (:valid phone)
       (>= 5 (:auth-attempts phone))))
 
-(def new-auth-code
+(def ^:private new-auth-code
   #((utils/rand-str-generator "ABCDEFGHIJKLMNOPQRSTUVWXYZ") 6))
 
 (defrecord PhoneNumbers [store twilio q]
   IPhoneNumbers
 
+  (auth-chan [_ number code] (filter< #(= [:authorize number code] %) q))
+
   (authorize [this number]
     (if (can-authorize (getp this number))
       (let [phone (storage/inc-auth! store (get-or-create this number))
             code (new-auth-code)
-            pred (is-auth-fn number code)
             auth-msg (format "Text back %s to authorize." code)
-            auth-chan (filter< pred q)
+            auth-chan (this number code)
             timeout-chan (timeout authorization-time-limit)]
         (if (send-sms twilio number auth-msg)
           (go
