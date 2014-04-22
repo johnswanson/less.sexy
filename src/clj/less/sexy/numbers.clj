@@ -4,9 +4,6 @@
             [less.sexy.storage :as storage]
             [less.sexy.utils :as utils]))
 
-(defprotocol IPhoneNumbers*
-  (getp [this number] "Gets the phone object for the number")
-  (get-or-create [this number] "Gets or creates a phone object for the number"))
 
 (defn- standardize
   "Tries to turn a phone number into E.164 format"
@@ -24,7 +21,9 @@
                             (authorize numbers \"+19073511000\")")
   (del [this number] "Marks a number as no longer active")
   (add [this number] "Add a number to the store, e.g.
-                            (add numbers \"1-907-35-1-1000)"))
+                            (add numbers \"1-907-35-1-1000)")
+  (getp [this number] "Gets the phone object for the number")
+  (get-or-create [this number] "Gets or creates a phone object for the number"))
 
 (def authorization-time-limit (* 1000 60))
 
@@ -66,8 +65,6 @@
     (let [phone (get-or-create this number)]
       (storage/add! store phone)
       (authorize this (:number phone))))
-
-  IPhoneNumbers*
 
   (getp [_ number]
     (storage/getphone store (standardize number)))
