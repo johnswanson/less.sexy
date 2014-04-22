@@ -18,7 +18,7 @@
   (authorized-numbers [this] "Every active number in the store")
   (authorize! [this phone] "Authorizes the number"))
 
-(defn memory-blank-db []
+(defn- memory-blank-db []
   {:sessions {}
    :phones {}})
 

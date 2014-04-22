@@ -8,12 +8,12 @@
   (getp [this number] "Gets the phone object for the number")
   (get-or-create [this number] "Gets or creates a phone object for the number"))
 
-(defn standardize
+(defn- standardize
   "Tries to turn a phone number into E.164 format"
   [number]
   (format "+%s" (clojure.string/replace number #"[^\d]" "")))
 
-(defn phone [number] {:number (standardize number)
+(defn- phone [number] {:number (standardize number)
                       :authorized false
                       :auth-attempts 0
                       :valid :maybe
@@ -28,10 +28,10 @@
 
 (def authorization-time-limit (* 1000 60))
 
-(defn is-auth-fn [number code]
+(defn- is-auth-fn [number code]
   (partial = [:authorize number code]))
 
-(defn can-authorize [phone]
+(defn- can-authorize [phone]
   (or (nil? phone)
       (not (:authorized phone))
       (:valid phone)
