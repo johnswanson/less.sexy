@@ -16,7 +16,10 @@
   (del! [this phone] "Removes a phone number from the store")
   (invalid! [this phone] "Completely deletes the phone record")
   (authorized-numbers [this] "Every active number in the store")
-  (authorize! [this phone] "Authorizes the number"))
+  (available-numbers [this] "Every unmatched active number in the store")
+  (authorize! [this phone] "Authorizes the number")
+  (pair-phone! [this p1 p2] "Pairs two phone numbers together")
+  (pair-phones! [this] "Pairs every phone number in the system together"))
 
 (defn- memory-blank-db []
   {:sessions {}
@@ -81,8 +84,17 @@
   (authorized-numbers [_]
     (->> (:phones @db)
       (map val)
-      (filter :authorized)
-      (map :number)))
+      (filter :authorized)))
+
+  (pair-phone! [this phone-1 phone-2]
+    (swap! db assoc-in [:phones (:number phone-1) :partner] phone-2)
+    (swap! db assoc-in [:phones (:number phone-2) :partner] phone-1))
+
+  (pair-phones! [this]
+    (let [available (shuffle (authorized-numbers this))
+          pairs (partition-all 2 available)]
+      (doseq [[p1 p2] pairs]
+        (when p2 (pair-phone! this p1 p2)))))
 
   SessionStore
   (read-session [_ key]
