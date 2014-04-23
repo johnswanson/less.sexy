@@ -10,18 +10,20 @@
             [ring.middleware.edn :as edn-middleware]
             [ring.util.response :as response]))
 
-(defn my-routes [nums q]
+(defn my-routes [nums chans]
   (routes
     (resources "/public")
     (GET "/" [] index/get-page)
     (POST "/" [number] (numbers/add nums number))
     (POST "/delete" [number] (numbers/del nums number))
-    (POST "/sms" [From To Body]
-      (go (>! q [:authorize From Body])))
+    (POST "/sms" [From Body]
+      (if-let [c (get-in @chans [:pending-authorizations From])]
+        (do (go (>! c [From Body]))
+            (printf "put %s on channel\n" [From Body]))))
     (not-found "404")))
 
-(defn create-handler [session nums q]
-  (-> (my-routes nums q)
+(defn create-handler [session nums chans]
+  (-> (my-routes nums chans)
     (params/wrap-params)
     (edn-middleware/wrap-edn-params)
     (session/wrap-session session)

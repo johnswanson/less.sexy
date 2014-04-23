@@ -19,7 +19,7 @@
    :twilio nil
    :server nil
    :session nil
-   :q nil})
+   :channels nil})
 
 (defn start!
   "Performs side effects to initialize the system, aquire resources, and start
@@ -33,18 +33,18 @@
                     (config :twilio :sid)
                     (config :twilio :token)
                     (config :twilio :number))
-        q (async/chan (async/sliding-buffer 256))
+        channels (atom {})
         session {:store store}
-        numbers (new PhoneNumbers store twilio q)
+        numbers (new PhoneNumbers store twilio channels)
         server (run-jetty
-                 (less.sexy.routing/create-handler session numbers q)
+                 (less.sexy.routing/create-handler session numbers channels)
                  (config :server))]
     (-> system
       (assoc :storage {:storage store :shutdown shutdown-store})
       (assoc :twilio twilio)
       (assoc :server server)
       (assoc :session session)
-      (assoc :q q))))
+      (assoc :channels channels))))
 
 (defn stop!
   "Performs side effects to shut down the system and release its resources.
@@ -57,7 +57,7 @@
     (assoc :storage nil)
     (assoc :twilio nil)
     (assoc :session nil)
-    (assoc :q nil)))
+    (assoc :channels nil)))
 
 (defn -main [] (start! (system)))
 
