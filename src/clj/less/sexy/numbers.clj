@@ -27,10 +27,10 @@
 (def authorization-time-limit (* 1000 60))
 
 (defn- can-authorize [phone]
-  (or (nil? phone)
-      (not (:authorized phone))
-      (:valid phone)
-      (>= 5 (:auth-attempts phone))))
+  (and (:number phone)
+       (not (:authorized phone))
+       (:valid phone)
+       (>= 5 (:auth-attempts phone))))
 
 (def ^:private new-auth-code
   #((utils/rand-str-generator "ABCDEFGHIJKLMNOPQRSTUVWXYZ") 6))
