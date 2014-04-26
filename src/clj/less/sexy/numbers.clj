@@ -2,15 +2,10 @@
   (:require [clojure.core.async :as async :refer [go filter< alts! timeout close! chan go-loop]]
             [less.sexy.twilio :as twilio :refer [send-sms]]
             [less.sexy.storage :as storage]
-            [less.sexy.utils :as utils]))
+            [less.sexy.utils :as utils]
+            [less.sexy.phone :refer [str->e164]]))
 
-
-(defn- standardize
-  "Tries to turn a phone number into E.164 format"
-  [number]
-  (format "+%s" (clojure.string/replace number #"[^\d]" "")))
-
-(defn- phone [number] {:number (standardize number)
+(defn- phone [number] {:number (str->e164 number)
                       :authorized false
                       :auth-attempts 0
                       :valid :maybe
@@ -81,7 +76,7 @@
       (authorize this (:number phone))))
 
   (getp [_ number]
-    (storage/getphone store (standardize number)))
+    (storage/getphone store (str->e164 number)))
 
   (get-or-create [this number]
     (or (getp this number) (phone number))))

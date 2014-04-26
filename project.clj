@@ -23,6 +23,7 @@
                  [compojure "1.1.6"]
                  [org.clojure/tools.reader "0.8.4"]
                  [hiccup "1.0.5"]
-                 [com.twilio.sdk/twilio-java-sdk "3.4.1"]]
+                 [com.twilio.sdk/twilio-java-sdk "3.4.1"]
+                 [com.googlecode.libphonenumber/libphonenumber "6.0"]]
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"})
