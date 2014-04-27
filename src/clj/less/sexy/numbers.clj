@@ -25,8 +25,10 @@
                             (add numbers \"1-907-35-1-1000)")
   (auth-chan [this number] "Returns a newly created channel to hold
                            authorization attempts for the number")
+  (fwd-sms [this number body] "Forwards sms to the number's partner")
   (getp [this number] "Gets the phone object for the number")
-  (get-or-create [this number] "Gets or creates a phone object for the number"))
+  (get-or-create [this number] "Gets or creates a phone object for the number")
+  (auth-pending? [this number] "Returns true if the number has a pending auth"))
 
 (def authorization-time-limit (* 1000 60))
 
@@ -99,6 +101,14 @@
       (storage/add! store phone)
       (authorize this (:number phone))
       phone))
+
+  (auth-pending? [this number]
+    (not (nil? (auth-chan this number))))
+
+  (fwd-sms [this number body]
+    (let [phone (getp this number)
+          partner (getp this (:partner phone))]
+      (when partner (send-sms twilio (:partner phone) body))))
 
   (getp [_ number]
     (storage/getphone store (str->e164 number)))

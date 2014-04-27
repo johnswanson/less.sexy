@@ -87,8 +87,9 @@
       (filter :authorized)))
 
   (pair-phone! [this phone-1 phone-2]
-    (swap! db assoc-in [:phones (:number phone-1) :partner] phone-2)
-    (swap! db assoc-in [:phones (:number phone-2) :partner] phone-1))
+    (swap! db #(-> %
+                 (assoc-in [:phones (:number phone-1) :partner] (:number phone-2))
+                 (assoc-in [:phones (:number phone-2) :partner] (:number phone-1)))))
 
   (pair-phones! [this]
     (let [available (shuffle (authorized-numbers this))

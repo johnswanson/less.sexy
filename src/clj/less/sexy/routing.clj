@@ -21,7 +21,9 @@
     (POST "/delete" [number] (numbers/del nums number))
     (POST "/sms" [From Body :as req]
       (when (valid-twilio-request? twilio req)
-        (numbers/auth-received nums From Body)))
+        (cond
+          (numbers/auth-pending? nums From) (numbers/auth-received nums From Body)
+          :else (numbers/fwd-sms nums From Body))))
     (not-found "404")))
 
 (defn create-handler [session nums chans twilio]
