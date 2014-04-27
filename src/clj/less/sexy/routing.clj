@@ -14,7 +14,8 @@
   (routes
     (resources "/public")
     (GET "/" [] (index/get-page))
-    (POST "/" [number] (numbers/add nums number))
+    (POST "/" [number] (when-let [phone (numbers/add nums number)]
+                         (index/add-number-page phone)))
     (POST "/" [number] (index/bad-number-page number))
     (POST "/delete" [number] (numbers/del nums number))
     (POST "/sms" [From Body]

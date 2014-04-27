@@ -19,6 +19,11 @@
            [:button {:type "submit"} "delete"]]])
   ([] (index-content nil)))
 
+(defn add-number-content [number]
+  [:div.content
+   [:h1 "less.sexy"]
+   [:p (format "Awesome, authorization text sent to %s" number)]])
+
 (defn- error [[t & args]]
   (case t
     :bad-number (apply bad-number-error args)
@@ -35,6 +40,9 @@
 
 (defn get-page []
   (views/base {:content (index-content)}))
+
+(defn add-number-page [phone]
+  (views/base {:content (add-number-content (:orig-number phone))}))
 
 (defn bad-number-page [number]
   (views/base {:content (index-content [:bad-number number])}))
