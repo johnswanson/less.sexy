@@ -37,7 +37,7 @@
         session {:store store}
         numbers (new PhoneNumbers store twilio channels)
         server (run-jetty
-                 (less.sexy.routing/create-handler session numbers channels)
+                 (less.sexy.routing/create-handler session numbers channels twilio)
                  (config :server))]
     (-> system
       (assoc :storage {:storage store :shutdown shutdown-store})

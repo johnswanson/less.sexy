@@ -16,6 +16,7 @@
                                    :pretty-print true}}]}
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/core.async "0.1.278.0-76b25b-alpha"]
+                 [org.clojure/data.codec "0.1.0"]
                  [fogus/ring-edn "0.1.0"]
                  [ring/ring-core "1.2.2"]
                  [ring/ring-jetty-adapter "1.2.2"]
@@ -24,6 +25,7 @@
                  [org.clojure/tools.reader "0.8.4"]
                  [hiccup "1.0.5"]
                  [com.twilio.sdk/twilio-java-sdk "3.4.1"]
-                 [com.googlecode.libphonenumber/libphonenumber "6.0"]]
+                 [com.googlecode.libphonenumber/libphonenumber "6.0"]
+                 [pandect "0.3.1"]]
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"})
