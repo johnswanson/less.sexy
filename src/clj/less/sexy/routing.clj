@@ -19,9 +19,7 @@
     (POST "/" [number] (index/bad-number-page number))
     (POST "/delete" [number] (numbers/del nums number))
     (POST "/sms" [From Body]
-      (if-let [c (numbers/auth-chan nums From)]
-        (do (go (>! c [From Body]))
-            (printf "put %s on channel\n" [From Body]))))
+      (numbers/auth-received nums From Body))
     (not-found "404")))
 
 (defn create-handler [session nums chans]

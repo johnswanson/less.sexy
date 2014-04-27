@@ -18,6 +18,8 @@
 (defprotocol IPhoneNumbers
   (authorize [this number] "Authorize a particular number, e.g.
                             (authorize numbers \"+19073511000\")")
+  (auth-received [this number code] "Notifies that an authorization attempt was
+                                    received.")
   (del [this number] "Marks a number as no longer active")
   (add [this number] "Add a number to the store, e.g.
                             (add numbers \"1-907-35-1-1000)")
@@ -87,6 +89,10 @@
         "Text back %s to deauthorize!"
         "Successfully deauthorized!"
         "Authorization failed, try again.")))
+
+  (auth-received [this number code]
+    (if-let [c (auth-chan this number)]
+      (go (>! c [number code]))))
 
   (add [this number]
     (when-let [phone (get-or-create this number)]
