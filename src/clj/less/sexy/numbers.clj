@@ -5,11 +5,15 @@
             [less.sexy.utils :as utils]
             [less.sexy.phone :refer [str->e164]]))
 
-(defn- phone [number] {:number (str->e164 number)
-                      :authorized false
-                      :auth-attempts 0
-                      :valid :maybe
-                      :orig-number number})
+(defn- phone
+  "Returns a phone record, or nil if unable to parse number."
+  [number]
+  (if-let [formatted (str->e164 number)]
+    {:number formatted
+     :authorized false
+     :auth-attempts 0
+     :valid :maybe
+     :orig-number number}))
 
 (defprotocol IPhoneNumbers
   (authorize [this number] "Authorize a particular number, e.g.
@@ -71,7 +75,7 @@
     (storage/del! store number))
 
   (add [this number]
-    (let [phone (get-or-create this number)]
+    (when-let [phone (get-or-create this number)]
       (storage/add! store phone)
       (authorize this (:number phone))))
 

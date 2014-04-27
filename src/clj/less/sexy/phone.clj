@@ -7,9 +7,9 @@
   "Tries to format a US phone number into the E164 standard.
   Swallows likely errors in parsing! Returns nil for invalid numbers."
   [n]
-  (let [u (.. PhoneNumberUtil getInstance)
-        number (.parse u n "US")]
+  (let [u (.. PhoneNumberUtil getInstance)]
     (try
-      (when (.isValidNumber u number)
+      (when-let [number (.parse u n "US")]
+        (.isValidNumber u number)
         (.format u number PhoneNumberUtil$PhoneNumberFormat/E164))
       (catch Exception e nil))))

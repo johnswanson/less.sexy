@@ -13,8 +13,9 @@
 (defn my-routes [nums chans]
   (routes
     (resources "/public")
-    (GET "/" [] index/get-page)
+    (GET "/" [] (index/get-page))
     (POST "/" [number] (numbers/add nums number))
+    (POST "/" [number] (index/bad-number-page number))
     (POST "/delete" [number] (numbers/del nums number))
     (POST "/sms" [From Body]
       (if-let [c (get-in @chans [:pending-authorizations From])]
