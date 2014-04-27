@@ -23,8 +23,6 @@
                             (add numbers \"1-907-35-1-1000)")
   (auth-chan [this number] "Returns a newly created channel to hold
                            authorization attempts for the number")
-  (close-auth-chan [this number] "Closes the authorization channel for the
-                                  number")
   (getp [this number] "Gets the phone object for the number")
   (get-or-create [this number] "Gets or creates a phone object for the number"))
 
@@ -39,45 +37,62 @@
 (def ^:private new-auth-code
   #((utils/rand-str-generator "ABCDEFGHIJKLMNOPQRSTUVWXYZ") 6))
 
+(defn- auth-chan! [this number]
+  (let [c (chan)]
+    (swap! (:chans this) assoc-in [:pending-authorizations number] c)
+    c))
+
+(defn- close-auth-chan! [this number]
+  (swap! (:chans this) update-in [:pending-authorizations] dissoc number))
+
+(defn- open-auth-chan [p phone success-handler prompt success failure]
+  (let [code (new-auth-code)
+        attempt-chan (auth-chan! p (:number phone))
+        [auth-success auth-fail] (async/split
+                                   (partial = [(:number phone) code])
+                                   attempt-chan)
+        timeout-chan (timeout authorization-time-limit)]
+    (if (send-sms (:twilio p) (:number phone) (format prompt code))
+      (go-loop []
+        (let [[_ ch] (alts! [auth-success auth-fail timeout-chan])]
+          (condp = ch
+            auth-success (do (send-sms (:twilio p) (:number phone) success)
+                             (close-auth-chan! p (:number phone))
+                             (success-handler))
+            auth-fail (do (send-sms (:twilio p) (:number phone) failure) (recur))
+            timeout-chan (close-auth-chan! p (:number phone))))))))
+
 (defrecord PhoneNumbers [store twilio chans]
   IPhoneNumbers
 
-  (auth-chan [this number]
-    (let [c (chan)]
-      (swap! chans assoc-in [:pending-authorizations number] c)
-      c))
-
-  (close-auth-chan [this number]
-    (swap! chans update-in [:pending-authorizations] dissoc number))
+  (auth-chan [this number] (get-in @chans [:pending-authorizations number]))
 
   (authorize [this number]
-    (if (can-authorize (getp this number))
-      (let [phone (storage/inc-auth! store (get-or-create this number))
-            code (new-auth-code)
-            auth-msg (format "Text back %s to authorize." code)
-            attempt-chan (auth-chan this number)
-            [auth-success auth-fail] (async/split
-                                           (partial = [number code])
-                                           attempt-chan)
-            timeout-chan (timeout authorization-time-limit)]
-        (if (send-sms twilio number auth-msg)
-          (go-loop []
-            (let [[_ ch] (alts! [auth-success auth-fail timeout-chan])]
-              (condp = ch
-                auth-success (do (send-sms twilio number "You're authorized!")
-                                 (close-auth-chan this number)
-                                 (storage/authorize! store phone))
-                auth-fail (do (send-sms twilio number "Sorry, auth failed") (recur))
-                timeout-chan (close-auth-chan this number))))
-          (storage/invalid! store phone)))))
+    (when (can-authorize (getp this number))
+      (when-not (open-auth-chan
+                  this
+                  (storage/inc-auth! store (getp this number))
+                  #(storage/authorize! store (getp this number))
+                  "Text back %s to authorize!"
+                  "You're authorized!"
+                  "Authorization failed, try again.")
+        (storage/invalid! store (getp this number)))))
 
-  (del [_ number]
-    (storage/del! store number))
+  (del [this number]
+    (when (:authorized (getp this number))
+      (open-auth-chan
+        this
+        (storage/inc-auth! store (getp this number))
+        #(storage/del! store (getp this number))
+        "Text back %s to deauthorize!"
+        "Successfully deauthorized!"
+        "Authorization failed, try again.")))
 
   (add [this number]
     (when-let [phone (get-or-create this number)]
       (storage/add! store phone)
-      (authorize this (:number phone))))
+      (authorize this (:number phone))
+      phone))
 
   (getp [_ number]
     (storage/getphone store (str->e164 number)))

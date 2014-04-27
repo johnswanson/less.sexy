@@ -74,7 +74,7 @@
 
   (del! [_ phone]
     {:pre [(map? phone)]}
-    (swap! db assoc-in [:phone (:number phone) :authorized] false)
+    (swap! db assoc-in [:phones (:number phone) :authorized] false)
     nil)
 
   (invalid! [_ phone]
