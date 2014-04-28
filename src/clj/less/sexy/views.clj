@@ -9,8 +9,10 @@
            [:title "less.sexy"]
            [:link {:href "/public/css/app.css"
                    :rel "stylesheet"
-                   :type "text/css"}]]
+                   :type "text/css"}]
+           (include-js "/public/js/track.js")]
           [:body
+           [:h1 "less.sexy"]
            [:div#content content]]
           (include-js "/public/js/main.js")
           (apply include-js scripts)]))

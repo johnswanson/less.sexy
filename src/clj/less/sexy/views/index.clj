@@ -8,7 +8,6 @@
 
 (defn index-content
   ([err] [:div.content
-          [:h1 "less.sexy"]
           (error err)
           [:form {:method "post"}
            [:input {:type "text" :name "number"}]
@@ -21,7 +20,6 @@
 
 (defn add-number-content [number]
   [:div.content
-   [:h1 "less.sexy"]
    [:p (format "Awesome, authorization text sent to %s" number)]])
 
 (defn- error [[t & args]]
