@@ -108,7 +108,8 @@
   (fwd-sms [this number body]
     (let [phone (getp this number)
           partner (getp this (:partner phone))]
-      (when partner (send-sms twilio (:partner phone) body))))
+      (when partner
+        (send-sms twilio (:partner phone) body))))
 
   (getp [_ number]
     (storage/getphone store (str->e164 number)))
