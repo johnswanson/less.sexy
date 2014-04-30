@@ -10,12 +10,14 @@
   ([err] [:div.content
           (error err)
           [:form {:method "post"}
-           [:input {:type "text" :name "number"}]
-           [:button {:type "submit"} "submit"]]
+           [:div.numbers
+            [:input {:type "text" :name "number" :placeholder "xxx xxx-xxxx"}]
+            [:button {:type "submit"} "submit"]]]
           [:form {:method "post"
                   :action "/delete"}
-           [:input {:type "text" :name "number"}]
-           [:button {:type "submit"} "delete"]]])
+           [:div.numbers
+            [:input {:type "text" :name "number" :placeholder "xxx xxx-xxxx"}]
+            [:button {:type "submit"} "delete"]]]])
   ([] (index-content nil)))
 
 (defn add-number-content [number]
