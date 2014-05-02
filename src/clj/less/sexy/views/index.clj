@@ -9,15 +9,9 @@
 (defn index-content
   ([err] [:div.content
           (error err)
-          [:form {:method "post"}
-           [:div.numbers
-            [:input {:type "text" :name "number" :placeholder "xxx xxx-xxxx"}]
-            [:button {:type "submit"} "submit"]]]
-          [:form {:method "post"
-                  :action "/delete"}
-           [:div.numbers
-            [:input {:type "text" :name "number" :placeholder "xxx xxx-xxxx"}]
-            [:button {:type "submit"} "delete"]]]])
+          [:div.numbers
+           [:input {:type "text" :name "number" :placeholder "xxx xxx-xxxx"}]
+           [:button.submit {:type "submit"} "submit"]]])
   ([] (index-content nil)))
 
 (defn add-number-content [number]

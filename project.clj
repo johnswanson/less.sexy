@@ -26,6 +26,7 @@
                  [hiccup "1.0.5"]
                  [com.twilio.sdk/twilio-java-sdk "3.4.1"]
                  [com.googlecode.libphonenumber/libphonenumber "6.0"]
-                 [pandect "0.3.1"]]
+                 [pandect "0.3.1"]
+                 [http-kit "2.1.16"]]
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"})

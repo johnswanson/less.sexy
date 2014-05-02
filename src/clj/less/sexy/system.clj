@@ -5,7 +5,8 @@
             [less.sexy.twilio :as twilio]
             [less.sexy.routing]
             [less.sexy.numbers]
-            [ring.adapter.jetty :refer [run-jetty]])
+            [ring.adapter.jetty :refer [run-jetty]]
+            [org.httpkit.server :refer [run-server]])
   (:import [less.sexy.storage MemoryStorage]
            [less.sexy.twilio Twilio]
            [less.sexy.numbers PhoneNumbers]))
@@ -36,7 +37,7 @@
         channels (atom {})
         session {:store store}
         numbers (new PhoneNumbers store twilio channels)
-        server (run-jetty
+        server (run-server
                  (less.sexy.routing/create-handler session numbers channels twilio)
                  (config :server))]
     (-> system
@@ -50,7 +51,7 @@
   "Performs side effects to shut down the system and release its resources.
   Returns an updated instance of the system."
   [system]
-  (.stop (:server system))
+  ((:server system) :timeout 100)
   ((get-in system [:storage :shutdown]))
   (-> system
     (assoc :server nil)

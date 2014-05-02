@@ -9,7 +9,8 @@
             [ring.middleware.session :as session]
             [ring.middleware.params :as params]
             [ring.middleware.edn :as edn-middleware]
-            [ring.util.response :as response]))
+            [ring.util.response :as response]
+            [org.httpkit.server :refer [with-channel send! on-receive]]))
 
 (defn twilio-resp [f]
   (do (f)
@@ -17,9 +18,17 @@
        :headers {"Content-Type" "text/xml; charset=utf-8"}
        :body "<?xml version=\"1.0\" ?><Response></Response>"}))
 
+(defn ws-handler [req]
+  (with-channel req channel
+    (send! channel "butts")
+    (on-receive channel (fn [data]
+                          (send! channel data)))))
+
+
 (defn my-routes [nums chans twilio]
   (routes
     (resources "/public")
+    (GET "/ws" [:as req] (ws-handler req))
     (GET "/" [] (index/get-page))
     (POST "/" [number] (when-let [phone (numbers/add nums number)]
                          (index/add-number-page phone)))
