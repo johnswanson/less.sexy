@@ -1,5 +1,6 @@
 (ns less.sexy.numbers
-  (:require [clojure.core.async :as async :refer [go filter< alts! timeout close! chan go-loop]]
+  (:require [org.httpkit.server :refer [send!]]
+            [clojure.core.async :as async :refer [go filter< alts! timeout close! chan go-loop]]
             [less.sexy.twilio :as twilio :refer [send-sms]]
             [less.sexy.storage :as storage]
             [less.sexy.utils :as utils]
@@ -62,6 +63,16 @@
           (condp = ch
             auth-success (do (send-sms (:twilio p) (:number phone) success)
                              (close-auth-chan! p (:number phone))
+                             (send! ((->
+                                       @(:chans p)
+                                       :pending-authorization-chans)
+                                     (:number phone))
+                                    "authorized")
+                             (swap! (:chans p)
+                                    update-in
+                                    [:pending-authorization-chans]
+                                    dissoc
+                                    (:number phone))
                              (success-handler))
             auth-fail (do (send-sms (:twilio p) (:number phone) failure) (recur))
             timeout-chan (close-auth-chan! p (:number phone))))))))

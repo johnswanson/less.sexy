@@ -25,6 +25,7 @@
                             (let [[cmd & args] (edn/read-string d)]
                               (case (keyword cmd)
                                 :add-number (when-let [phone (numbers/add nums (first args))]
+                                              (swap! chans assoc-in [:pending-authorization-chans (:number phone)] channel)
                                               (send! channel "adding"))))))))
 
 

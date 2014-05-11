@@ -12,7 +12,8 @@
           [:div#numbers
            [:input.number {:type "text" :name "number" :placeholder "xxx xxx-xxxx"}]
            [:button.submit {:type "submit"} "submit"]
-           [:span.adding.hidden "[adding]"]]])
+           [:span.adding.hidden "[adding]"]
+           [:span.authorized.hidden "[authorized!]"]]])
   ([] (index-content nil)))
 
 (defn add-number-content [number]
