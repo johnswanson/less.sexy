@@ -14,6 +14,7 @@
           [:body
            [:div#header
             [:h1 "less.sexy"]]
-           [:div#content content]]
-          (include-js "/public/js/main.js")
+           [:div#content-holder [:div#content content]]]
+          (include-js "/public/js/jsedn.js"
+                      "/public/js/main.js")
           (apply include-js scripts)]))

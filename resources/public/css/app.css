@@ -4,76 +4,59 @@
   box-sizing: border-box;
   font-family: 'Ubuntu Mono', '';
 }
-
-body {
-  background: #333;
-}
-
 div#header {
-  background: #222;
-  height: 7em;
-  box-shadow: 0 0 0.25em white;
-  -moz-box-shadow: 0 0 0.25em white;
-  -webkit-box-shadow: 0 0 0.25em white;
-}
-
-div#header h1 {
-  padding: 1em 0em 1em 0em;
   margin: 0 auto;
-  width: 6em;
-  color: white;
+  width: 100px;
 }
 
-h1 {
-  font-size: 2em;
+div#content-holder
+{
+  padding: 30px;
+  height: 100%;
 }
 
-div#header h1 {
-  font-family: 'Ubuntu Mono', '';
-}
-
-
-div#content {
-  height: 24em;
-  background: #888;
-}
-
-div#content div.content {
-  margin: 0 auto;
-  width: 24em;
-  position: relative;
-  top: 7em;
-}
-
-form {
-  padding: 1em;
-}
-
-div.numbers {
-  position: static;
-}
-
-input {
-  background-color: #BBB;
-  text-align: center;
+div#content
+{
   margin: auto;
-  height: 3em;
-  width: 11em;
-  border: 1px solid #333;
+  width: 800px;
+  height: 600px;  
 }
-button {
-  background-color: #BBB;
+
+div#numbers-holder {
+  padding: 30px;
+  height: 100%;
+}
+
+input.number {
+  width: 150px;
+  border: 1px solid #000;
+}
+
+button.submit {
+  width: 70px;
+}
+
+div#numbers {
   margin: auto;
+  width: 340px;
+  height: 100px;
+}
+
+span.adding {
   margin-left: 2em;
-  width: 9em;
-  height: 3em;
-  right: 0;
-  top: 2px;
-  border: 1px solid #333;
+}
+
+button {
+  background-color: #FFF;
+  margin: auto;
+  margin-left: 1em;
+  border: 1px solid #000;
 }
 
 button:hover {
-  background-color: #333;
-  color: #BBB;
-  border: 1px solid #BBB;
+  background-color: #DDD;
+}
+
+.hidden {
+  display: none;
 }

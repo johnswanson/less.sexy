@@ -7,11 +7,12 @@
 (declare error bad-number-error)
 
 (defn index-content
-  ([err] [:div.content
+  ([err] [:div#numbers-holder
           (error err)
-          [:div.numbers
-           [:input {:type "text" :name "number" :placeholder "xxx xxx-xxxx"}]
-           [:button.submit {:type "submit"} "submit"]]])
+          [:div#numbers
+           [:input.number {:type "text" :name "number" :placeholder "xxx xxx-xxxx"}]
+           [:button.submit {:type "submit"} "submit"]
+           [:span.adding.hidden "[adding]"]]])
   ([] (index-content nil)))
 
 (defn add-number-content [number]
